@@ -14,6 +14,10 @@ class PatientSignupSerializer(serializers.ModelSerializer):
             'birth_date', 'gender', 'chronic_diseases'
         ]
         extra_kwargs = {
+            'full_name': {'required': True},
+            'phone_number': {'required': True},
+            'birth_date': {'required': True},
+            'gender': {'required': True},
             'chronic_diseases': {'required': False}
         }
     
@@ -194,20 +198,33 @@ class AppointmentConcludeSerializer(serializers.ModelSerializer):
         return instance
 
 
+class DoctorAvailabilityInputSerializer(serializers.Serializer):
+    day = serializers.ChoiceField(choices=DoctorAvailability.DAYS_OF_WEEK)
+    start_time = serializers.TimeField()
+    end_time = serializers.TimeField()
+
+
 class DoctorCreateSerializer(serializers.ModelSerializer):
-    """Serializer for admin creating a doctor."""
-    
+    """Serializer for admin creating a doctor with availability."""
+    availabilities = DoctorAvailabilityInputSerializer(many=True)
+
     class Meta:
         model = User
         fields = [
             'email', 'full_name', 'phone_number',
-            'specialty', 'about', 'image'
+            'specialty', 'about', 'image', 'availabilities'
         ]
-    
+
     def create(self, validated_data):
+        availabilities_data = validated_data.pop('availabilities', [])
         validated_data['user_type'] = 'doctor'
-        user = User.objects.create(**validated_data)
-        return user
+        doctor = User.objects.create(**validated_data)
+
+        # Create availabilities
+        for avail in availabilities_data:
+            DoctorAvailability.objects.create(doctor=doctor, **avail)
+
+        return doctor
 
 
 class AdminSwapSerializer(serializers.Serializer):

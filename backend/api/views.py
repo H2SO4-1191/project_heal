@@ -8,15 +8,9 @@ from django.db.models import Q
 from datetime import timedelta
 import random
 
-from .models import User, Appointment, DoctorAvailability
-from .serializers import (
-    PatientSignupSerializer, OTPRequestSerializer, OTPVerifySerializer,
-    DoctorListSerializer, DoctorDetailSerializer, DoctorCreateSerializer,
-    AppointmentCreateSerializer, AppointmentListSerializer,
-    AppointmentDetailSerializer, DoctorAppointmentDetailSerializer,
-    AppointmentConcludeSerializer, PatientSerializer, AdminSwapSerializer
-)
-from .permissions import IsAuthenticated, IsAdmin, IsPatient, IsDoctor, OwnsAppointment
+from .models import *
+from .serializers import *
+from .permissions import *
 
 
 # ==================== Authentication Views ====================

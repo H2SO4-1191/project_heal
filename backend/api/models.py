@@ -164,4 +164,4 @@ class Appointment(models.Model):
         ordering = ['-datetime']
     
     def __str__(self):
-        return f"Appointment #{self.id} - {self.patient.full_name} with Dr. {self.doctor.full_name} on {self.datetime}"
+        return f"Appointment #{self.id} - {self.patient.full_name} with Dr. {self.doctor.full_name} on {self.datetime}"  # type: ignore
