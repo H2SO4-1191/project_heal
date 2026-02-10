@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MediCare</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1 class="logo">MediCare Admin</h1>
+            </div>
+            <div class="nav-links">
+                <a href="admin-dashboard.html" class="nav-link active">Dashboard</a>
+                <div class="user-section" id="userSection">
+                    <span class="user-name" id="userName"></span>
+                    <button class="btn btn-outline" id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2 class="page-title">Admin Dashboard</h2>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👨‍⚕️</div>
+                    <div class="stat-info">
+                        <h3 id="totalDoctors">0</h3>
+                        <p>Total Doctors</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <h3 id="totalPatients">0</h3>
+                        <p>Total Patients</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-info">
+                        <h3 id="totalAppointments">0</h3>
+                        <p>Total Appointments</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-info">
+                        <h3 id="todayAppointments">0</h3>
+                        <p>Today's Appointments</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Tabs -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="doctors">Doctors</button>
+                <button class="admin-tab" data-tab="patients">Patients</button>
+                <button class="admin-tab" data-tab="appointments">Appointments</button>
+                <button class="admin-tab" data-tab="settings">Settings</button>
+            </div>
+
+            <!-- Doctors Tab -->
+            <div class="tab-content" id="doctorsTab">
+                <div class="tab-header">
+                    <h3>Manage Doctors</h3>
+                    <button class="btn btn-primary" id="addDoctorBtn">+ Add Doctor</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Specialty</th>
+                                <th>Phone</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="doctorsTableBody">
+                            <!-- Doctors will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Patients Tab -->
+            <div class="tab-content hidden" id="patientsTab">
+                <div class="tab-header">
+                    <h3>Manage Patients</h3>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Age</th>
+                                <th>Gender</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientsTableBody">
+                            <!-- Patients will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Appointments Tab -->
+            <div class="tab-content hidden" id="appointmentsTab">
+                <div class="tab-header">
+                    <h3>Manage Appointments</h3>
+                    <div class="filters-inline">
+                        <select id="statusFilter" class="form-input-small">
+                            <option value="">All Status</option>
+                            <option value="waiting">Waiting</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <select id="periodFilter" class="form-input-small">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="future">Future</option>
+                            <option value="past">Past</option>
+                        </select>
+                        <button class="btn btn-secondary" id="filterAppointmentsBtn">Filter</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Doctor</th>
+                                <th>Patient</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appointmentsTableBody">
+                            <!-- Appointments will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content hidden" id="settingsTab">
+                <div class="tab-header">
+                    <h3>Admin Settings</h3>
+                </div>
+                <div class="settings-section">
+                    <h4>Change Admin Email</h4>
+                    <form id="swapAdminForm">
+                        <div class="form-group">
+                            <label for="newAdminEmail">New Admin Email</label>
+                            <input type="email" id="newAdminEmail" class="form-input" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Request OTP</button>
+                    </form>
+                    
+                    <div class="otp-verification hidden" id="otpVerification">
+                        <div class="form-group">
+                            <label for="currentOtp">Current Admin OTP</label>
+                            <input type="text" id="currentOtp" class="form-input" maxlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOtp">New Admin OTP</label>
+                            <input type="text" id="newOtp" class="form-input" maxlength="6">
+                        </div>
+                        <button class="btn btn-primary" id="verifySwapBtn">Verify & Swap</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for adding/editing doctors -->
+    <div class="modal hidden" id="doctorModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="doctorModalTitle">Add New Doctor</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="doctorForm">
+                    <div class="form-group">
+                        <label for="doctorEmail">Email</label>
+                        <input type="email" id="doctorEmail" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorName">Full Name</label>
+                        <input type="text" id="doctorName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorPhone">Phone Number</label>
+                        <input type="tel" id="doctorPhone" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorSpecialty">Specialty</label>
+                        <input type="text" id="doctorSpecialty" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorAbout">About</label>
+                        <textarea id="doctorAbout" class="form-input" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Availability</label>
+                        <div id="availabilityInputs">
+                            <div class="availability-row">
+                                <select class="form-input-small availability-day">
+                                    <option value="monday">Monday</option>
+                                    <option value="tuesday">Tuesday</option>
+                                    <option value="wednesday">Wednesday</option>
+                                    <option value="thursday">Thursday</option>
+                                    <option value="friday">Friday</option>
+                                    <option value="saturday">Saturday</option>
+                                    <option value="sunday">Sunday</option>
+                                </select>
+                                <input type="time" class="form-input-small availability-start" value="09:00">
+                                <input type="time" class="form-input-small availability-end" value="17:00">
+                                <button type="button" class="btn-icon" onclick="this.parentElement.remove()">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-text" id="addAvailabilityBtn">+ Add Time Slot</button>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" id="cancelDoctorBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Doctor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html>
