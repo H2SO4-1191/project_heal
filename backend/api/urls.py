@@ -1,3 +1,4 @@
+from rest_framework_simplejwt.views import TokenRefreshView
 from django.urls import path
 from .views import *
 
@@ -6,6 +7,7 @@ urlpatterns = [
     path('auth/signup/', PatientSignupView.as_view(), name='patient-signup'),
     path('auth/otp/request/', OTPRequestView.as_view(), name='otp-request'),
     path('auth/otp/verify/', OTPVerifyView.as_view(), name='otp-verify'),
+    path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     # ==================== Patients ====================
     path('doctors/', DoctorListView.as_view(), name='doctor-list'),

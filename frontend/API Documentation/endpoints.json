@@ -1,0 +1,701 @@
+{
+  "title": "Medical Appointment Management API Documentation",
+  "base_url": "http://localhost:8000/",
+  "endpoints": [
+    {
+      "title": "Patient Signup",
+      "url": "/auth/signup/",
+      "method": "POST",
+      "permissions": ["No permission required"],
+      "description": "Register a new patient user",
+      "requestBody": {
+        "email": "patient@example.com",
+        "full_name": "John Doe",
+        "phone_number": "+1234567890",
+        "birth_date": "1990-05-15",
+        "gender": "male",
+        "chronic_diseases": "Diabetes Type 2"
+      },
+      "responses": {
+        "success": {
+          "status": 201,
+          "body": {
+            "email": "patient@example.com",
+            "full_name": "John Doe",
+            "phone_number": "+1234567890",
+            "birth_date": "1990-05-15",
+            "gender": "male",
+            "chronic_diseases": "Diabetes Type 2"
+          }
+        },
+        "error": {
+          "status": 400,
+          "body": {
+            "email": ["user with this email already exists."]
+          }
+        }
+      }
+    },
+    {
+      "title": "Request OTP",
+      "url": "/auth/otp/request/",
+      "method": "POST",
+      "permissions": ["No permission required"],
+      "description": "Request OTP for login (OTP will be printed to console)",
+      "requestBody": {
+        "email": "patient@example.com"
+      },
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": {
+            "message": "OTP sent successfully. Check console.",
+            "email": "patient@example.com"
+          }
+        },
+        "error": {
+          "status": 404,
+          "body": {
+            "error": "User with this email does not exist."
+          }
+        }
+      }
+    },
+    {
+      "title": "Verify OTP",
+      "url": "/auth/otp/verify/",
+      "method": "POST",
+      "permissions": ["No permission required"],
+      "description": "Verify OTP and get JWT token",
+      "requestBody": {
+        "email": "patient@example.com",
+        "otp_code": "123456"
+      },
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": {
+            "message": "Login successful.",
+            "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+            "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+            "user": {
+              "email": "patient@example.com",
+              "user_type": "patient",
+              "full_name": "John Doe"
+            }
+          }
+        },
+        "error": {
+          "status": 401,
+          "body": {
+            "error": "Invalid or expired OTP."
+          }
+        }
+      }
+    },
+    {
+      "title": "List All Doctors",
+      "url": "/doctors/",
+      "method": "GET",
+      "permissions": ["No permission required"],
+      "description": "Retrieves a list of all doctors with optional filtering by name or specialty. Query parameters: ?name=John or ?specialty=Cardiology",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": [
+            {
+              "id": 1,
+              "full_name": "Dr. Sarah Smith",
+              "specialty": "Cardiology",
+              "image": "/media/doctors/sarah.jpg"
+            },
+            {
+              "id": 2,
+              "full_name": "Dr. John Wilson",
+              "specialty": "Neurology",
+              "image": "/media/doctors/john.jpg"
+            }
+          ]
+        },
+        "error": {
+          "status": 200,
+          "body": []
+        }
+      }
+    },
+    {
+      "title": "Get Doctor Details",
+      "url": "/doctors/{id}/",
+      "method": "GET",
+      "permissions": ["No permission required"],
+      "description": "Get detailed profile of a specific doctor including availability",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": {
+            "id": 1,
+            "full_name": "Dr. Sarah Smith",
+            "email": "sarah@example.com",
+            "phone_number": "+1234567890",
+            "specialty": "Cardiology",
+            "about": "Experienced cardiologist with 15 years of practice",
+            "image": "/media/doctors/sarah.jpg",
+            "availabilities": [
+              {
+                "id": 1,
+                "day": "monday",
+                "start_time": "09:00:00",
+                "end_time": "17:00:00"
+              },
+              {
+                "id": 2,
+                "day": "wednesday",
+                "start_time": "09:00:00",
+                "end_time": "17:00:00"
+              }
+            ]
+          }
+        },
+        "error": {
+          "status": 404,
+          "body": {
+            "detail": "Not found."
+          }
+        }
+      }
+    },
+    {
+      "title": "Create Appointment",
+      "url": "/appointments/create/",
+      "method": "POST",
+      "permissions": ["IsPatient"],
+      "description": "Book a new appointment with a doctor",
+      "requestBody": {
+        "doctor": 1,
+        "datetime": "2026-02-15T14:00:00Z"
+      },
+      "responses": {
+        "success": {
+          "status": 201,
+          "body": {
+            "doctor": 1,
+            "datetime": "2026-02-15T14:00:00Z"
+          }
+        },
+        "error": {
+          "status": 400,
+          "body": {
+            "non_field_errors": [
+              "This time slot is not available. Please choose a time at least 30 minutes away from existing appointments."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "List Patient's Appointments",
+      "url": "/appointments/",
+      "method": "GET",
+      "permissions": ["IsPatient"],
+      "description": "List all appointments for the logged-in patient",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": [
+            {
+              "id": 1,
+              "doctor": 1,
+              "doctor_name": "Dr. Sarah Smith",
+              "doctor_specialty": "Cardiology",
+              "patient": 2,
+              "patient_name": "John Doe",
+              "datetime": "2026-02-15T14:00:00Z",
+              "status": "waiting",
+              "created_at": "2026-02-10T10:00:00Z"
+            }
+          ]
+        },
+        "error": {
+          "status": 401,
+          "body": {
+            "detail": "Authentication credentials were not provided."
+          }
+        }
+      }
+    },
+    {
+      "title": "Get Appointment Details",
+      "url": "/appointments/{id}/",
+      "method": "GET",
+      "permissions": ["OwnsAppointment"],
+      "description": "Get details of a specific appointment",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": {
+            "id": 1,
+            "doctor": {
+              "id": 1,
+              "full_name": "Dr. Sarah Smith",
+              "specialty": "Cardiology",
+              "image": "/media/doctors/sarah.jpg"
+            },
+            "patient": {
+              "id": 2,
+              "full_name": "John Doe",
+              "email": "patient@example.com",
+              "phone_number": "+1234567890",
+              "birth_date": "1990-05-15",
+              "age": 35,
+              "gender": "male",
+              "chronic_diseases": "Diabetes Type 2"
+            },
+            "datetime": "2026-02-15T14:00:00Z",
+            "status": "waiting",
+            "conclusion": null,
+            "medication": null,
+            "created_at": "2026-02-10T10:00:00Z",
+            "updated_at": "2026-02-10T10:00:00Z"
+          }
+        },
+        "error": {
+          "status": 403,
+          "body": {
+            "detail": "You do not have permission to perform this action."
+          }
+        }
+      }
+    },
+    {
+      "title": "Cancel Appointment",
+      "url": "/appointments/{id}/cancel/",
+      "method": "PUT",
+      "permissions": ["IsPatient", "OwnsAppointment"],
+      "description": "Cancel a patient's appointment",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": {
+            "message": "Appointment cancelled successfully.",
+            "appointment": {
+              "id": 1,
+              "doctor": 1,
+              "doctor_name": "Dr. Sarah Smith",
+              "doctor_specialty": "Cardiology",
+              "patient": 2,
+              "patient_name": "John Doe",
+              "datetime": "2026-02-15T14:00:00Z",
+              "status": "cancelled",
+              "created_at": "2026-02-10T10:00:00Z"
+            }
+          }
+        },
+        "error": {
+          "status": 400,
+          "body": {
+            "error": "Appointment is already cancelled."
+          }
+        }
+      }
+    },
+    {
+      "title": "Doctor's Today Appointments",
+      "url": "/doctors/me/appointments/today/",
+      "method": "GET",
+      "permissions": ["IsDoctor"],
+      "description": "List today's appointments for the logged-in doctor",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": [
+            {
+              "id": 1,
+              "doctor": 1,
+              "doctor_name": "Dr. Sarah Smith",
+              "doctor_specialty": "Cardiology",
+              "patient": 2,
+              "patient_name": "John Doe",
+              "datetime": "2026-02-10T14:00:00Z",
+              "status": "waiting",
+              "created_at": "2026-02-08T10:00:00Z"
+            }
+          ]
+        },
+        "error": {
+          "status": 403,
+          "body": {
+            "detail": "You do not have permission to perform this action."
+          }
+        }
+      }
+    },
+    {
+      "title": "Doctor View Appointment Details",
+      "url": "/doctors/appointments/{id}/",
+      "method": "GET",
+      "permissions": ["IsDoctor", "OwnsAppointment"],
+      "description": "View details of a specific appointment including patient info and previous appointments",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": {
+            "id": 1,
+            "patient": {
+              "id": 2,
+              "full_name": "John Doe",
+              "email": "patient@example.com",
+              "phone_number": "+1234567890",
+              "birth_date": "1990-05-15",
+              "age": 35,
+              "gender": "male",
+              "chronic_diseases": "Diabetes Type 2"
+            },
+            "datetime": "2026-02-10T14:00:00Z",
+            "status": "waiting",
+            "conclusion": null,
+            "medication": null,
+            "previous_appointments": [
+              {
+                "id": 5,
+                "datetime": "2026-01-15T10:00:00Z",
+                "conclusion": "Regular checkup. Blood pressure normal.",
+                "medication": "Continue current medication"
+              }
+            ]
+          }
+        },
+        "error": {
+          "status": 404,
+          "body": {
+            "detail": "Not found."
+          }
+        }
+      }
+    },
+    {
+      "title": "Conclude Appointment",
+      "url": "/appointments/{id}/conclude/",
+      "method": "PUT",
+      "permissions": ["IsDoctor", "OwnsAppointment"],
+      "description": "Conclude an appointment by adding diagnosis, medication, and optionally updating chronic diseases",
+      "requestBody": {
+        "conclusion": "Patient showing improvement. Blood sugar levels are stable.",
+        "medication": "Metformin 500mg twice daily, continue for 3 months",
+        "chronic_diseases": "Diabetes Type 2, Hypertension"
+      },
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": {
+            "message": "Appointment concluded successfully.",
+            "appointment": {
+              "id": 1,
+              "patient": {
+                "id": 2,
+                "full_name": "John Doe",
+                "email": "patient@example.com",
+                "phone_number": "+1234567890",
+                "birth_date": "1990-05-15",
+                "age": 35,
+                "gender": "male",
+                "chronic_diseases": "Diabetes Type 2, Hypertension"
+              },
+              "datetime": "2026-02-10T14:00:00Z",
+              "status": "completed",
+              "conclusion": "Patient showing improvement. Blood sugar levels are stable.",
+              "medication": "Metformin 500mg twice daily, continue for 3 months",
+              "previous_appointments": []
+            }
+          }
+        },
+        "error": {
+          "status": 400,
+          "body": {
+            "error": "Cannot conclude a cancelled appointment."
+          }
+        }
+      }
+    },
+    {
+      "title": "Admin - List All Doctors",
+      "url": "/admin/doctors/",
+      "method": "GET",
+      "permissions": ["IsAdmin"],
+      "description": "List all doctors in the system",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": [
+            {
+              "id": 1,
+              "full_name": "Dr. Sarah Smith",
+              "email": "sarah@example.com",
+              "phone_number": "+1234567890",
+              "specialty": "Cardiology",
+              "about": "Experienced cardiologist with 15 years of practice",
+              "image": "/media/doctors/sarah.jpg",
+              "availabilities": [
+                {
+                  "id": 1,
+                  "day": "monday",
+                  "start_time": "09:00:00",
+                  "end_time": "17:00:00"
+                }
+              ]
+            }
+          ]
+        },
+        "error": {
+          "status": 403,
+          "body": {
+            "detail": "You do not have permission to perform this action."
+          }
+        }
+      }
+    },
+    {
+      "title": "Admin - Create Doctor",
+      "url": "/admin/doctors/create/",
+      "method": "POST",
+      "permissions": ["IsAdmin"],
+      "description": "Register a new doctor user with availability",
+      "requestBody": {
+        "email": "newdoctor@example.com",
+        "full_name": "Dr. Michael Brown",
+        "phone_number": "+1987654321",
+        "specialty": "Orthopedics",
+        "about": "Specialist in sports injuries",
+        "image": null,
+        "availabilities": [
+          {
+            "day": "tuesday",
+            "start_time": "10:00:00",
+            "end_time": "18:00:00"
+          },
+          {
+            "day": "thursday",
+            "start_time": "10:00:00",
+            "end_time": "18:00:00"
+          }
+        ]
+      },
+      "responses": {
+        "success": {
+          "status": 201,
+          "body": {
+            "email": "newdoctor@example.com",
+            "full_name": "Dr. Michael Brown",
+            "phone_number": "+1987654321",
+            "specialty": "Orthopedics",
+            "about": "Specialist in sports injuries",
+            "image": null,
+            "availabilities": [
+              {
+                "day": "tuesday",
+                "start_time": "10:00:00",
+                "end_time": "18:00:00"
+              },
+              {
+                "day": "thursday",
+                "start_time": "10:00:00",
+                "end_time": "18:00:00"
+              }
+            ]
+          }
+        },
+        "error": {
+          "status": 400,
+          "body": {
+            "email": ["user with this email already exists."]
+          }
+        }
+      }
+    },
+    {
+      "title": "Admin - Delete Doctor",
+      "url": "/admin/doctors/{id}/",
+      "method": "DELETE",
+      "permissions": ["IsAdmin"],
+      "description": "Delete a doctor from the system",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 204,
+          "body": null
+        },
+        "error": {
+          "status": 404,
+          "body": {
+            "detail": "Not found."
+          }
+        }
+      }
+    },
+    {
+      "title": "Admin - List All Patients",
+      "url": "/admin/patients/",
+      "method": "GET",
+      "permissions": ["IsAdmin"],
+      "description": "List all patients in the system",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": [
+            {
+              "id": 2,
+              "full_name": "John Doe",
+              "email": "patient@example.com",
+              "phone_number": "+1234567890",
+              "birth_date": "1990-05-15",
+              "age": 35,
+              "gender": "male",
+              "chronic_diseases": "Diabetes Type 2"
+            }
+          ]
+        },
+        "error": {
+          "status": 403,
+          "body": {
+            "detail": "You do not have permission to perform this action."
+          }
+        }
+      }
+    },
+    {
+      "title": "Admin - Delete Patient",
+      "url": "/admin/patients/{id}/",
+      "method": "DELETE",
+      "permissions": ["IsAdmin"],
+      "description": "Delete a patient from the system",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 204,
+          "body": null
+        },
+        "error": {
+          "status": 404,
+          "body": {
+            "detail": "Not found."
+          }
+        }
+      }
+    },
+    {
+      "title": "Admin - List All Appointments",
+      "url": "/admin/appointments/",
+      "method": "GET",
+      "permissions": ["IsAdmin"],
+      "description": "List all appointments with optional filtering. Query parameters: ?status=waiting or ?period=today or ?period=future or ?period=past",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": [
+            {
+              "id": 1,
+              "doctor": 1,
+              "doctor_name": "Dr. Sarah Smith",
+              "doctor_specialty": "Cardiology",
+              "patient": 2,
+              "patient_name": "John Doe",
+              "datetime": "2026-02-15T14:00:00Z",
+              "status": "waiting",
+              "created_at": "2026-02-10T10:00:00Z"
+            }
+          ]
+        },
+        "error": {
+          "status": 403,
+          "body": {
+            "detail": "You do not have permission to perform this action."
+          }
+        }
+      }
+    },
+    {
+      "title": "Admin - Delete Appointment",
+      "url": "/admin/appointments/{id}/",
+      "method": "DELETE",
+      "permissions": ["IsAdmin"],
+      "description": "Delete an appointment from the system",
+      "requestBody": null,
+      "responses": {
+        "success": {
+          "status": 204,
+          "body": null
+        },
+        "error": {
+          "status": 404,
+          "body": {
+            "detail": "Not found."
+          }
+        }
+      }
+    },
+    {
+      "title": "Admin - Swap Admin Account (Request OTPs)",
+      "url": "/admin/swap-admin/",
+      "method": "POST",
+      "permissions": ["IsAdmin"],
+      "description": "Step 1: Request OTPs for changing admin email. OTPs will be printed to console.",
+      "requestBody": {
+        "step": "request",
+        "new_email": "newadmin@example.com"
+      },
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": {
+            "message": "OTPs generated. Check console.",
+            "new_email": "newadmin@example.com",
+            "new_otp_for_verification": "654321"
+          }
+        },
+        "error": {
+          "status": 400,
+          "body": {
+            "error": "Email already exists."
+          }
+        }
+      }
+    },
+    {
+      "title": "Admin - Swap Admin Account (Verify OTPs)",
+      "url": "/admin/swap-admin/",
+      "method": "POST",
+      "permissions": ["IsAdmin"],
+      "description": "Step 2: Verify OTPs and complete admin email swap",
+      "requestBody": {
+        "step": "verify",
+        "new_email": "newadmin@example.com",
+        "current_otp": "123456",
+        "new_otp": "654321"
+      },
+      "responses": {
+        "success": {
+          "status": 200,
+          "body": {
+            "message": "Admin email updated successfully.",
+            "new_email": "newadmin@example.com"
+          }
+        },
+        "error": {
+          "status": 401,
+          "body": {
+            "error": "Invalid or expired current admin OTP."
+          }
+        }
+      }
+    }
+  ]
+}

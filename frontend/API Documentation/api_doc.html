@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Documentation Template</title>
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://avatars.githubusercontent.com/u/160245889?v=4&size=64"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #e2e8f0;
+        background: #0f172a;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        background: linear-gradient(135deg, #4c1d95 0%, #581c87 100%);
+        color: white;
+        padding: 40px 20px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .search-box {
+        margin-bottom: 30px;
+        position: relative;
+      }
+
+      .search-box input {
+        width: 100%;
+        padding: 15px 20px;
+        font-size: 16px;
+        border: 2px solid #334155;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.3s;
+        background: #1e293b;
+        color: #e2e8f0;
+      }
+
+      .search-box input:focus {
+        border-color: #8b5cf6;
+      }
+
+      .search-box input::placeholder {
+        color: #64748b;
+      }
+
+      .endpoint {
+        background: #1e293b;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        overflow: hidden;
+        border: 1px solid #334155;
+      }
+
+      .endpoint:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      }
+
+      .endpoint-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 20px 25px;
+        flex-wrap: wrap;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s;
+        position: relative;
+      }
+
+      .endpoint-header:hover {
+        background-color: #334155;
+      }
+
+      .endpoint-header::after {
+        content: "▼";
+        position: absolute;
+        right: 25px;
+        font-size: 0.8em;
+        color: #8b5cf6;
+        transition: transform 0.3s;
+      }
+
+      .endpoint.active .endpoint-header::after {
+        transform: rotate(-180deg);
+      }
+
+      .endpoint-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        padding: 0 25px;
+      }
+
+      .endpoint.active .endpoint-content {
+        max-height: 3000px;
+        padding: 0 25px 25px 25px;
+        transition: max-height 0.5s ease-in;
+      }
+
+      .endpoint-title {
+        font-size: 1.5em;
+        font-weight: 600;
+        color: #f1f5f9;
+      }
+
+      .method-badge {
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .method-get {
+        background: #48bb78;
+        color: white;
+      }
+      .method-post {
+        background: #4299e1;
+        color: white;
+      }
+      .method-put {
+        background: #ed8936;
+        color: white;
+      }
+      .method-patch {
+        background: #9f7aea;
+        color: white;
+      }
+      .method-delete {
+        background: #f56565;
+        color: white;
+      }
+
+      .endpoint-url {
+        background: #0f172a;
+        padding: 12px 16px;
+        border-radius: 6px;
+        font-family: "Courier New", monospace;
+        font-size: 0.95em;
+        color: #a5b4fc;
+        border-left: 4px solid #8b5cf6;
+        margin-bottom: 20px;
+        word-break: break-all;
+      }
+
+      .section {
+        margin-bottom: 20px;
+      }
+
+      .section-title {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #cbd5e1;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-title::before {
+        content: "";
+        width: 4px;
+        height: 20px;
+        background: #8b5cf6;
+        border-radius: 2px;
+      }
+
+      .permissions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .permission-badge {
+        background: #334155;
+        color: #cbd5e1;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: 500;
+      }
+
+      .code-block {
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 16px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-family: "Courier New", monospace;
+        font-size: 0.9em;
+        line-height: 1.5;
+        border: 1px solid #334155;
+      }
+
+      .response-section {
+        margin-top: 15px;
+      }
+
+      .response-type {
+        font-weight: 600;
+        margin-bottom: 8px;
+        padding: 6px 10px;
+        border-radius: 4px;
+        display: inline-block;
+      }
+
+      .response-success {
+        background: #064e3b;
+        color: #6ee7b7;
+      }
+
+      .response-error {
+        background: #7f1d1d;
+        color: #fca5a5;
+      }
+
+      .no-results {
+        text-align: center;
+        padding: 40px;
+        color: #64748b;
+        font-size: 1.1em;
+      }
+
+      .file-loader {
+        margin: 10px 0 30px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .load-btn {
+        background: linear-gradient(135deg, #4c1d95 0%, #581c87 100%);
+        color: #ffffff;
+        border: 1px solid #8b5cf6;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+      }
+
+      .load-btn:hover {
+        background: #6d28d9;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+      }
+
+      @media (max-width: 768px) {
+        header h1 {
+          font-size: 1.8em;
+        }
+
+        .endpoint-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>API Documentation Template</h1>
+        <p>Complete reference for all available endpoints</p>
+        <p id="base_url" style="display: none; margin-top: 5px"></p>
+      </header>
+
+      <div class="file-loader">
+        <input type="file" id="fileInput" accept=".json" hidden />
+        <button id="loadFileBtn" class="load-btn">Load API JSON</button>
+      </div>
+
+      <div class="search-box">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search endpoints by title, URL, or method..."
+        />
+      </div>
+
+      <div id="endpointsContainer"></div>
+      <div id="noResults" class="no-results" style="display: none">
+        No endpoints found matching your search.
+      </div>
+    </div>
+
+    <script>
+      let endpoints = [];
+      let fileLoaded = false;
+
+      class Endpoint {
+        constructor(data) {
+          this.data = data;
+        }
+
+        render() {
+          const endpoint = document.createElement("div");
+          endpoint.className = "endpoint";
+          endpoint.innerHTML = `
+                    <div class="endpoint-header">
+                        <h2 class="endpoint-title">${this.data.title}</h2>
+                        <span class="method-badge method-${this.data.method.toLowerCase()}">${this.data.method}</span>
+                    </div>
+                    
+                    <div class="endpoint-content">
+                        <div class="endpoint-url">${this.data.url}</div>
+                        
+                        ${this.data.description ? `<p style="margin-bottom: 20px; color: #cbd5e1;">${this.data.description}</p>` : ""}
+                        
+                        <div class="section">
+                            <div class="section-title">Permissions Required</div>
+                            <div class="permissions">
+                                ${this.data.permissions
+                                  .map(
+                                    (perm) =>
+                                      `<span class="permission-badge">${perm}</span>`,
+                                  )
+                                  .join("")}
+                            </div>
+                        </div>
+                        
+                        ${this.renderRequestBody()}
+                        ${this.renderResponses()}
+                    </div>
+                `;
+
+          const header = endpoint.querySelector(".endpoint-header");
+          header.addEventListener("click", () => {
+            toggleEndpoint(endpoint);
+          });
+
+          return endpoint;
+        }
+
+        renderRequestBody() {
+          if (!this.data.requestBody) {
+            return '<div class="section"><div class="section-title">Request Body</div><p style="color: #64748b; font-style: italic;">No request body required</p></div>';
+          }
+          return `
+                    <div class="section">
+                        <div class="section-title">Request Body</div>
+                        <pre class="code-block">${JSON.stringify(this.data.requestBody, null, 2)}</pre>
+                    </div>
+                `;
+        }
+
+        renderResponses() {
+          return `
+                    <div class="section">
+                        <div class="section-title">Responses</div>
+                        
+                        <div class="response-section">
+                            <div class="response-type response-success">
+                                Success (${this.data.responses.success.status})
+                            </div>
+                            ${
+                              this.data.responses.success.body
+                                ? `<pre class="code-block">${JSON.stringify(this.data.responses.success.body, null, 2)}</pre>`
+                                : `<p style="color: #64748b; font-style: italic; margin-top: 8px;">No content returned</p>`
+                            }
+                        </div>
+                        
+                        <div class="response-section">
+                            <div class="response-type response-error">
+                                Error (${this.data.responses.error.status})
+                            </div>
+                            <pre class="code-block">${JSON.stringify(this.data.responses.error.body, null, 2)}</pre>
+                        </div>
+                    </div>
+                `;
+        }
+      }
+
+      function renderEndpoints(endpointsToRender) {
+        const container = document.getElementById("endpointsContainer");
+        const noResults = document.getElementById("noResults");
+
+        container.innerHTML = "";
+
+        if (endpointsToRender.length === 0) {
+          container.style.display = "none";
+          noResults.style.display = "block";
+
+          noResults.textContent = fileLoaded
+            ? "No endpoints found matching your search."
+            : "Load an API JSON file to list endpoints.";
+        } else {
+          container.style.display = "block";
+          noResults.style.display = "none";
+          endpointsToRender.forEach((data) => {
+            const endpoint = new Endpoint(data);
+            container.appendChild(endpoint.render());
+          });
+        }
+      }
+
+      function toggleEndpoint(clickedEndpoint) {
+        const allEndpoints = document.querySelectorAll(".endpoint");
+        const isCurrentlyActive = clickedEndpoint.classList.contains("active");
+
+        allEndpoints.forEach((ep) => ep.classList.remove("active"));
+
+        if (!isCurrentlyActive) {
+          clickedEndpoint.classList.add("active");
+        }
+      }
+
+      function searchEndpoints(query) {
+        const lowerQuery = query.toLowerCase().trim();
+        if (!lowerQuery) {
+          renderEndpoints(endpoints);
+          return;
+        }
+
+        const filtered = endpoints.filter((endpoint) => {
+          return (
+            endpoint.title.toLowerCase().includes(lowerQuery) ||
+            endpoint.url.toLowerCase().includes(lowerQuery) ||
+            endpoint.method.toLowerCase().includes(lowerQuery) ||
+            (endpoint.description &&
+              endpoint.description.toLowerCase().includes(lowerQuery))
+          );
+        });
+
+        renderEndpoints(filtered);
+      }
+
+      document.getElementById("loadFileBtn").addEventListener("click", () => {
+        document.getElementById("fileInput").click();
+      });
+
+      document.getElementById("fileInput").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+          try {
+            const json = JSON.parse(event.target.result);
+
+            document.title = json.title || "API Documentation";
+            document.querySelector("header h1").textContent =
+              json.title || "API Documentation";
+
+            const baseUrlElem = document.getElementById("base_url");
+            if (json.base_url) {
+              baseUrlElem.textContent = json.base_url;
+              baseUrlElem.style.display = "inline-block";
+              baseUrlElem.style.background = "#1e293b";
+              baseUrlElem.style.color = "white";
+              baseUrlElem.style.padding = "3px 8px";
+              baseUrlElem.style.borderRadius = "4px";
+              baseUrlElem.style.fontFamily = "'Courier New', monospace";
+              baseUrlElem.style.fontStyle = "normal";
+              baseUrlElem.style.fontSize = "0.85em";
+              baseUrlElem.style.marginTop = "8px";
+            } else {
+              baseUrlElem.style.display = "none";
+            }
+
+            fileLoaded = true;
+            endpoints = json.endpoints || [];
+            renderEndpoints(endpoints);
+          } catch (err) {
+            alert(err);
+          }
+        };
+
+        reader.readAsText(file);
+      });
+
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        searchEndpoints(e.target.value);
+      });
+
+      renderEndpoints([]);
+    </script>
+  </body>
+</html>
