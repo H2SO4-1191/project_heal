@@ -1,5 +1,5 @@
 {
-  "title": "Medical Appointment Management API Documentation",
+  "title": "Project Heal API Documentation",
   "base_url": "http://localhost:8000/",
   "endpoints": [
     {
