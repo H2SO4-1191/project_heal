@@ -8,9 +8,15 @@ from django.db.models import Q
 from datetime import timedelta
 import random
 
-from .models import *
-from .serializers import *
-from .permissions import *
+from .models import User, Appointment, DoctorAvailability
+from .serializers import (
+    PatientSignupSerializer, OTPRequestSerializer, OTPVerifySerializer,
+    DoctorListSerializer, DoctorDetailSerializer, DoctorCreateSerializer,
+    AppointmentCreateSerializer, AppointmentListSerializer,
+    AppointmentDetailSerializer, DoctorAppointmentDetailSerializer,
+    AppointmentConcludeSerializer, PatientSerializer, AdminSwapSerializer
+)
+from .permissions import IsAuthenticated, IsAdmin, IsPatient, IsDoctor, OwnsAppointment
 
 
 # ==================== Authentication Views ====================
@@ -29,7 +35,7 @@ class OTPRequestView(APIView):
         serializer = OTPRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        email = serializer.validated_data['email'] # type: ignore
+        email = serializer.validated_data['email']
         
         try:
             user = User.objects.get(email=email)
@@ -62,8 +68,8 @@ class OTPVerifyView(APIView):
         serializer = OTPVerifySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        email = serializer.validated_data['email'] # type: ignore
-        otp_code = serializer.validated_data['otp_code'] # type: ignore
+        email = serializer.validated_data['email']
+        otp_code = serializer.validated_data['otp_code']
         
         try:
             user = User.objects.get(email=email)
@@ -107,16 +113,16 @@ class DoctorListView(generics.ListAPIView):
     serializer_class = DoctorListSerializer
     permission_classes = []
     
-    def get_queryset(self): # type: ignore
+    def get_queryset(self):
         queryset = User.objects.filter(user_type='doctor')
         
         # Filter by name
-        name = self.request.query_params.get('name', None) # type: ignore
+        name = self.request.query_params.get('name', None)
         if name:
             queryset = queryset.filter(full_name__icontains=name)
         
         # Filter by specialty
-        specialty = self.request.query_params.get('specialty', None) # type: ignore
+        specialty = self.request.query_params.get('specialty', None)
         if specialty:
             queryset = queryset.filter(specialty__icontains=specialty)
         
@@ -130,6 +136,96 @@ class DoctorDetailView(generics.RetrieveAPIView):
     permission_classes = []
 
 
+class DoctorNextAvailableView(APIView):
+    """Get the next available appointment slot for a doctor."""
+    permission_classes = []
+    
+    def get(self, request, pk):
+        try:
+            doctor = User.objects.get(pk=pk, user_type='doctor')
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Doctor not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get doctor's availability
+        availabilities = DoctorAvailability.objects.filter(doctor=doctor)
+        
+        if not availabilities.exists():
+            return Response({'next_available': None})
+        
+        # Start checking from now
+        current_datetime = timezone.now()
+        days_to_check = 30  # Check next 30 days
+        
+        for day_offset in range(days_to_check):
+            check_date = current_datetime.date() + timedelta(days=day_offset)
+            day_name = check_date.strftime('%A').lower()
+            
+            # Check if doctor works on this day
+            day_availability = availabilities.filter(day=day_name).first()
+            
+            if not day_availability:
+                continue
+            
+            # Get all appointments on this day
+            day_appointments = Appointment.objects.filter(
+                doctor=doctor,
+                datetime__date=check_date,
+                status__in=['waiting', 'completed']
+            ).order_by('datetime')
+            
+            # Create datetime objects for the day's working hours
+            start_datetime = timezone.make_aware(
+                timezone.datetime.combine(check_date, day_availability.start_time)
+            )
+            end_datetime = timezone.make_aware(
+                timezone.datetime.combine(check_date, day_availability.end_time)
+            )
+            
+            # If checking today, start from current time
+            if day_offset == 0:
+                start_datetime = max(start_datetime, current_datetime)
+            
+            # Round up to next 30-minute interval
+            minutes = start_datetime.minute
+            if minutes % 30 != 0:
+                start_datetime = start_datetime.replace(
+                    minute=((minutes // 30) + 1) * 30 % 60,
+                    second=0,
+                    microsecond=0
+                )
+                if minutes >= 30:
+                    start_datetime += timedelta(hours=1)
+            
+            # Check time slots in 30-minute intervals
+            current_slot = start_datetime
+            
+            while current_slot < end_datetime:
+                # Check if this slot conflicts with any appointment
+                is_available = True
+                
+                for appointment in day_appointments:
+                    # Check if slot is within 30 minutes of existing appointment
+                    time_diff = abs((current_slot - appointment.datetime).total_seconds() / 60)
+                    
+                    if time_diff < 30:
+                        is_available = False
+                        break
+                
+                if is_available:
+                    return Response({
+                        'next_available': current_slot.isoformat()
+                    })
+                
+                # Move to next 30-minute slot
+                current_slot += timedelta(minutes=30)
+        
+        # No available slot found in the next 30 days
+        return Response({'next_available': None})
+
+
 class AppointmentCreateView(generics.CreateAPIView):
     """Book a new appointment."""
     serializer_class = AppointmentCreateSerializer
@@ -141,7 +237,7 @@ class PatientAppointmentListView(generics.ListAPIView):
     serializer_class = AppointmentListSerializer
     permission_classes = [IsPatient]
     
-    def get_queryset(self): # type: ignore
+    def get_queryset(self):
         return Appointment.objects.filter(patient=self.request.user)
 
 
@@ -197,7 +293,7 @@ class DoctorTodayAppointmentsView(generics.ListAPIView):
     serializer_class = AppointmentListSerializer
     permission_classes = [IsDoctor]
     
-    def get_queryset(self): # type: ignore
+    def get_queryset(self):
         today = timezone.now().date()
         return Appointment.objects.filter(
             doctor=self.request.user,
@@ -211,7 +307,7 @@ class DoctorAppointmentDetailView(generics.RetrieveAPIView):
     serializer_class = DoctorAppointmentDetailSerializer
     permission_classes = [IsDoctor, OwnsAppointment]
     
-    def get_queryset(self): # type: ignore
+    def get_queryset(self):
         return Appointment.objects.filter(doctor=self.request.user)
 
 
@@ -295,16 +391,16 @@ class AdminAppointmentListView(generics.ListAPIView):
     serializer_class = AppointmentListSerializer
     permission_classes = [IsAdmin]
     
-    def get_queryset(self): # type: ignore
+    def get_queryset(self):
         queryset = Appointment.objects.all()
         
         # Filter by status
-        appointment_status = self.request.query_params.get('status', None) # type: ignore
+        appointment_status = self.request.query_params.get('status', None)
         if appointment_status:
             queryset = queryset.filter(status=appointment_status)
         
         # Filter by time period
-        period = self.request.query_params.get('period', None) # type: ignore
+        period = self.request.query_params.get('period', None)
         if period == 'today':
             today = timezone.now().date()
             queryset = queryset.filter(datetime__date=today)
@@ -368,9 +464,9 @@ class AdminSwapView(APIView):
             serializer = AdminSwapSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             
-            new_email = serializer.validated_data['new_email'] # type: ignore
-            current_otp = serializer.validated_data['current_otp'] # type: ignore
-            new_otp = serializer.validated_data['new_otp'] # type: ignore
+            new_email = serializer.validated_data['new_email']
+            current_otp = serializer.validated_data['current_otp']
+            new_otp = serializer.validated_data['new_otp']
             
             # Verify current admin OTP
             if not request.user.is_otp_valid or request.user.otp_code != current_otp:

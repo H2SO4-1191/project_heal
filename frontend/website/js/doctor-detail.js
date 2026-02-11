@@ -1,5 +1,6 @@
 // Doctor detail page
 let currentDoctor = null;
+let nextAvailableTime = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -11,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     await loadDoctorProfile(doctorId);
+    await loadNextAvailable(doctorId);
     setupBookingForm();
 });
 
@@ -33,6 +35,27 @@ async function loadDoctorProfile(doctorId) {
         loading.classList.add('hidden');
         showNotification('Failed to load doctor profile', 'error');
         setTimeout(() => window.location.href = 'index.html', 2000);
+    }
+}
+
+// Load next available appointment time
+async function loadNextAvailable(doctorId) {
+    try {
+        const result = await apiCall(API_ENDPOINTS.doctorNextAvailable(doctorId), 'GET', null, false);
+        
+        if (result.next_available) {
+            nextAvailableTime = result.next_available;
+            
+            // Convert to datetime-local format
+            const date = new Date(result.next_available);
+            const localDateTime = new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+                .toISOString()
+                .slice(0, 16);
+            
+            document.getElementById('appointmentDate').value = localDateTime;
+        }
+    } catch (error) {
+        console.error('Failed to load next available time:', error);
     }
 }
 
@@ -107,7 +130,24 @@ async function handleBooking() {
         showNotification('Appointment booked successfully!', 'success');
         setTimeout(() => window.location.href = 'my-appointments.html', 1500);
     } catch (error) {
-        const errorMsg = error.non_field_errors ? error.non_field_errors[0] : 'Failed to book appointment';
+        let errorMsg = 'Failed to book appointment';
+        
+        if (error.non_field_errors) {
+            errorMsg = error.non_field_errors[0];
+            
+            // If time slot conflict, reload next available and show it
+            if (errorMsg.includes('already has an appointment')) {
+                await loadNextAvailable(currentDoctor.id);
+                
+                if (nextAvailableTime) {
+                    const nextDate = new Date(nextAvailableTime);
+                    errorMsg = `${errorMsg} The closest available time has been set in the field for you.`;
+                }
+            }
+        } else if (error.datetime) {
+            errorMsg = error.datetime[0];
+        }
+        
         showNotification(errorMsg, 'error');
     }
 }

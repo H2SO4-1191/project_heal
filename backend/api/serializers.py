@@ -14,10 +14,6 @@ class PatientSignupSerializer(serializers.ModelSerializer):
             'birth_date', 'gender', 'chronic_diseases'
         ]
         extra_kwargs = {
-            'full_name': {'required': True},
-            'phone_number': {'required': True},
-            'birth_date': {'required': True},
-            'gender': {'required': True},
             'chronic_diseases': {'required': False}
         }
     
@@ -85,7 +81,7 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = ['doctor', 'datetime']
     
-    def validate(self, data): # type: ignore
+    def validate(self, data):
         doctor = data.get('doctor')
         appointment_datetime = data.get('datetime')
         
@@ -97,6 +93,26 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
         if appointment_datetime <= timezone.now():
             raise serializers.ValidationError("Appointment time must be in the future.")
         
+        # Check if doctor works on this day
+        day_name = appointment_datetime.strftime('%A').lower()
+        appointment_time = appointment_datetime.time()
+        
+        day_availability = DoctorAvailability.objects.filter(
+            doctor=doctor,
+            day=day_name
+        ).first()
+        
+        if not day_availability:
+            raise serializers.ValidationError(
+                f"Doctor does not work on {day_name.capitalize()}s."
+            )
+        
+        # Check if appointment is within doctor's working hours
+        if not (day_availability.start_time <= appointment_time <= day_availability.end_time):
+            raise serializers.ValidationError(
+                f"Doctor's working hours on {day_name.capitalize()} are {day_availability.start_time.strftime('%H:%M')} - {day_availability.end_time.strftime('%H:%M')}."
+            )
+        
         # Check if there's a conflicting appointment (within 30 minutes)
         conflicting_appointments = Appointment.objects.filter(
             doctor=doctor,
@@ -107,7 +123,7 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
         
         if conflicting_appointments.exists():
             raise serializers.ValidationError(
-                "This time slot is not available. Please choose a time at least 30 minutes away from existing appointments."
+                "The doctor already has an appointment with another patient at this time."
             )
         
         return data
@@ -169,7 +185,7 @@ class DoctorAppointmentDetailSerializer(serializers.ModelSerializer):
         ).order_by('-datetime')
         
         return [{
-            'id': appt.id, # type: ignore
+            'id': appt.id,
             'datetime': appt.datetime,
             'conclusion': appt.conclusion,
             'medication': appt.medication
@@ -198,22 +214,21 @@ class AppointmentConcludeSerializer(serializers.ModelSerializer):
         return instance
 
 
-class DoctorAvailabilityInputSerializer(serializers.Serializer):
-    day = serializers.ChoiceField(choices=DoctorAvailability.DAYS_OF_WEEK)
-    start_time = serializers.TimeField()
-    end_time = serializers.TimeField()
+class DoctorCreateSerializer(DoctorDetailSerializer):
+    """Serializer for admin creating a doctor with availability input."""
+    availabilities = serializers.JSONField(write_only=True)
 
+    class Meta(DoctorDetailSerializer.Meta):
+        fields = DoctorDetailSerializer.Meta.fields + ['availabilities']
 
-class DoctorCreateSerializer(serializers.ModelSerializer):
-    """Serializer for admin creating a doctor with availability."""
-    availabilities = DoctorAvailabilityInputSerializer(many=True)
-
-    class Meta:
-        model = User
-        fields = [
-            'email', 'full_name', 'phone_number',
-            'specialty', 'about', 'image', 'availabilities'
-        ]
+    def validate_availabilities(self, value):
+        if isinstance(value, str):
+            import json
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                raise serializers.ValidationError("Invalid availabilities format")
+        return value
 
     def create(self, validated_data):
         availabilities_data = validated_data.pop('availabilities', [])

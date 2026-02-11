@@ -106,6 +106,7 @@ async function loadDoctors() {
                 <td>${doctor.specialty}</td>
                 <td>${doctor.phone_number}</td>
                 <td class="table-actions">
+                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" onclick="viewDoctorDetails(${doctor.id})">View</button>
                     <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" onclick="deleteDoctor(${doctor.id}, '${doctor.full_name}')">Delete</button>
                 </td>
             `;
@@ -186,36 +187,87 @@ async function handleDoctorSubmit(e) {
         });
     });
     
-    const formData = {
-        email: document.getElementById('doctorEmail').value,
-        full_name: document.getElementById('doctorName').value,
-        phone_number: document.getElementById('doctorPhone').value,
-        specialty: document.getElementById('doctorSpecialty').value,
-        about: document.getElementById('doctorAbout').value,
-        availabilities: availabilities
-    };
+    const imageFile = document.getElementById('doctorImage').files[0];
     
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Saving...';
-    
-    try {
-        await apiCall(API_ENDPOINTS.adminDoctorCreate, 'POST', formData);
+    // Use FormData if image is present, otherwise use JSON
+    if (imageFile) {
+        const formData = new FormData();
+        formData.append('email', document.getElementById('doctorEmail').value);
+        formData.append('full_name', document.getElementById('doctorName').value);
+        formData.append('phone_number', document.getElementById('doctorPhone').value);
+        formData.append('specialty', document.getElementById('doctorSpecialty').value);
+        formData.append('about', document.getElementById('doctorAbout').value);
+        formData.append('availabilities', JSON.stringify(availabilities));
+        formData.append('image', imageFile);
         
-        showNotification('Doctor added successfully', 'success');
-        closeDoctorModal();
-        await loadDoctors();
-        await loadStatistics();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
         
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Save Doctor';
-    } catch (error) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Save Doctor';
+        try {
+            // Manual fetch for FormData
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(API_BASE_URL + API_ENDPOINTS.adminDoctorCreate, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw error;
+            }
+            
+            showNotification('Doctor added successfully', 'success');
+            closeDoctorModal();
+            await loadDoctors();
+            await loadStatistics();
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Doctor';
+        } catch (error) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Doctor';
+            
+            let errorMsg = 'Failed to add doctor';
+            if (error.email) errorMsg = error.email[0];
+            
+            showNotification(errorMsg, 'error');
+        }
+    } else {
+        // No image, use JSON
+        const formData = {
+            email: document.getElementById('doctorEmail').value,
+            full_name: document.getElementById('doctorName').value,
+            phone_number: document.getElementById('doctorPhone').value,
+            specialty: document.getElementById('doctorSpecialty').value,
+            about: document.getElementById('doctorAbout').value,
+            availabilities: availabilities
+        };
         
-        let errorMsg = 'Failed to add doctor';
-        if (error.email) errorMsg = error.email[0];
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
         
-        showNotification(errorMsg, 'error');
+        try {
+            await apiCall(API_ENDPOINTS.adminDoctorCreate, 'POST', formData);
+            
+            showNotification('Doctor added successfully', 'success');
+            closeDoctorModal();
+            await loadDoctors();
+            await loadStatistics();
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Doctor';
+        } catch (error) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Doctor';
+            
+            let errorMsg = 'Failed to add doctor';
+            if (error.email) errorMsg = error.email[0];
+            
+            showNotification(errorMsg, 'error');
+        }
     }
 }
 
@@ -259,6 +311,7 @@ async function loadPatients() {
                 <td>${patient.age || 'N/A'}</td>
                 <td>${patient.gender || 'N/A'}</td>
                 <td class="table-actions">
+                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" onclick="viewPatientDetails(${patient.id})">View</button>
                     <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" onclick="deletePatient(${patient.id}, '${patient.full_name}')">Delete</button>
                 </td>
             `;
@@ -322,6 +375,7 @@ async function loadAppointments() {
                 <td>${formatDateTime(appointment.datetime)}</td>
                 <td><span class="appointment-status ${statusClass}">${appointment.status}</span></td>
                 <td class="table-actions">
+                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" onclick="viewAppointmentDetails(${appointment.id})">View</button>
                     <button class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" onclick="deleteAppointment(${appointment.id})">Delete</button>
                 </td>
             `;
@@ -411,5 +465,238 @@ async function handleSwapAdminVerify() {
         verifyBtn.disabled = false;
         verifyBtn.textContent = 'Verify & Swap';
         showNotification(error.error || 'Failed to verify OTPs', 'error');
+    }
+}
+
+// ==================== VIEW DETAILS FUNCTIONS ====================
+
+async function viewDoctorDetails(doctorId) {
+    try {
+        const doctor = await apiCall(API_ENDPOINTS.doctorDetail(doctorId));
+        
+        const modal = document.getElementById('doctorModal');
+        const modalTitle = document.getElementById('doctorModalTitle');
+        const doctorForm = document.getElementById('doctorForm');
+        
+        modalTitle.textContent = 'Doctor Details';
+        
+        // Hide the form and show read-only details
+        doctorForm.style.display = 'none';
+        
+        const modalBody = modal.querySelector('.modal-body');
+        const detailsDiv = document.createElement('div');
+        detailsDiv.id = 'doctorDetailsView';
+        detailsDiv.innerHTML = `
+            <div style="margin-bottom: 24px;">
+                ${doctor.image ? `<img src="${doctor.image}" alt="${doctor.full_name}" style="width: 150px; height: 150px; border-radius: 8px; object-fit: cover; margin-bottom: 16px;">` : ''}
+                <h3 style="margin-bottom: 8px;">${doctor.full_name}</h3>
+                <p style="color: var(--primary); font-size: 18px; margin-bottom: 16px;">${doctor.specialty}</p>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <strong>Email:</strong> ${doctor.email}
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <strong>Phone:</strong> ${doctor.phone_number}
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <strong>About:</strong><br>
+                ${doctor.about || 'N/A'}
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <strong>Availability:</strong><br>
+                ${doctor.availabilities && doctor.availabilities.length > 0 ? 
+                    doctor.availabilities.map(avail => `
+                        <div style="padding: 8px; background: var(--primary-light); border-radius: 4px; margin-top: 8px;">
+                            <strong style="text-transform: capitalize;">${avail.day}:</strong> 
+                            ${formatTime(avail.start_time)} - ${formatTime(avail.end_time)}
+                        </div>
+                    `).join('') : 
+                    'No availability set'
+                }
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                <button class="btn btn-outline" onclick="closeDoctorDetailsModal()">Close</button>
+            </div>
+        `;
+        
+        modalBody.appendChild(detailsDiv);
+        modal.classList.remove('hidden');
+        
+        document.getElementById('modalClose').onclick = closeDoctorDetailsModal;
+    } catch (error) {
+        showNotification('Failed to load doctor details', 'error');
+    }
+}
+
+function closeDoctorDetailsModal() {
+    const modal = document.getElementById('doctorModal');
+    const doctorForm = document.getElementById('doctorForm');
+    const detailsView = document.getElementById('doctorDetailsView');
+    
+    if (detailsView) {
+        detailsView.remove();
+    }
+    
+    doctorForm.style.display = 'block';
+    modal.classList.add('hidden');
+}
+
+async function viewPatientDetails(patientId) {
+    try {
+        // Fetch patient details using the admin patients endpoint
+        const patients = await apiCall(API_ENDPOINTS.adminPatients);
+        const patient = patients.find(p => p.id === patientId);
+        
+        if (!patient) {
+            throw new Error('Patient not found');
+        }
+        
+        // Create a simple modal for patient details
+        const modalHtml = `
+            <div class="modal" id="patientDetailsModal" style="display: flex;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Patient Details</h3>
+                        <button class="modal-close" onclick="closePatientDetailsModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="margin-bottom: 16px;">
+                            <strong>Full Name:</strong> ${patient.full_name}
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong>Email:</strong> ${patient.email}
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong>Phone:</strong> ${patient.phone_number}
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong>Age:</strong> ${patient.age || 'N/A'}
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong>Gender:</strong> ${patient.gender || 'N/A'}
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong>Birth Date:</strong> ${patient.birth_date ? formatDate(patient.birth_date) : 'N/A'}
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong>Chronic Diseases:</strong><br>
+                            ${patient.chronic_diseases || 'None'}
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                            <button class="btn btn-outline" onclick="closePatientDetailsModal()">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('patientDetailsModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    } catch (error) {
+        showNotification('Failed to load patient details', 'error');
+    }
+}
+
+function closePatientDetailsModal() {
+    const modal = document.getElementById('patientDetailsModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+async function viewAppointmentDetails(appointmentId) {
+    try {
+        const appointment = await apiCall(API_ENDPOINTS.appointmentDetail(appointmentId));
+        
+        const statusClass = `status-${appointment.status}`;
+        const statusText = appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1);
+        
+        const modalHtml = `
+            <div class="modal" id="appointmentDetailsModal" style="display: flex;">
+                <div class="modal-content modal-large">
+                    <div class="modal-header">
+                        <h3>Appointment Details</h3>
+                        <button class="modal-close" onclick="closeAppointmentDetailsModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="margin-bottom: 24px;">
+                            <span class="appointment-status ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div style="margin-bottom: 24px;">
+                            <h4 style="margin-bottom: 12px; color: var(--primary);">Doctor Information</h4>
+                            <p><strong>Name:</strong> ${appointment.doctor.full_name}</p>
+                            <p><strong>Specialty:</strong> ${appointment.doctor.specialty}</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 24px;">
+                            <h4 style="margin-bottom: 12px; color: var(--primary);">Patient Information</h4>
+                            <p><strong>Name:</strong> ${appointment.patient.full_name}</p>
+                            <p><strong>Age:</strong> ${appointment.patient.age || 'N/A'}</p>
+                            <p><strong>Gender:</strong> ${appointment.patient.gender || 'N/A'}</p>
+                            <p><strong>Chronic Diseases:</strong> ${appointment.patient.chronic_diseases || 'None'}</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 24px;">
+                            <h4 style="margin-bottom: 12px; color: var(--primary);">Appointment Details</h4>
+                            <p><strong>Date & Time:</strong> ${formatDateTime(appointment.datetime)}</p>
+                            <p><strong>Booked on:</strong> ${formatDateTime(appointment.created_at)}</p>
+                        </div>
+                        
+                        ${appointment.status === 'completed' && appointment.conclusion ? `
+                            <div style="margin-bottom: 24px;">
+                                <h4 style="margin-bottom: 12px; color: var(--primary);">Diagnosis</h4>
+                                <p>${appointment.conclusion}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${appointment.status === 'completed' && appointment.medication ? `
+                            <div style="margin-bottom: 24px;">
+                                <h4 style="margin-bottom: 12px; color: var(--primary);">Prescribed Medication</h4>
+                                <p>${appointment.medication}</p>
+                            </div>
+                        ` : ''}
+                        
+                        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                            <button class="btn btn-outline" onclick="closeAppointmentDetailsModal()">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('appointmentDetailsModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    } catch (error) {
+        showNotification('Failed to load appointment details', 'error');
+    }
+}
+
+function closeAppointmentDetailsModal() {
+    const modal = document.getElementById('appointmentDetailsModal');
+    if (modal) {
+        modal.remove();
     }
 }

@@ -1,3 +1,4 @@
+import os
 from django.db import migrations
 from django.utils import timezone
 import random
@@ -19,25 +20,29 @@ def generate_initial_data(apps, schema_editor):
     admin.save()
     
     # Patient data
-    first_names = [
-        'James', 'Mary', 'John', 'Patricia', 'Robert', 'Jennifer', 'Michael', 'Linda',
-        'William', 'Barbara', 'David', 'Elizabeth', 'Richard', 'Susan', 'Joseph', 'Jessica',
-        'Thomas', 'Sarah', 'Charles', 'Karen', 'Christopher', 'Nancy', 'Daniel', 'Lisa',
-        'Matthew', 'Betty', 'Anthony', 'Margaret', 'Mark', 'Sandra', 'Donald', 'Ashley',
-        'Steven', 'Kimberly', 'Paul', 'Emily', 'Andrew', 'Donna', 'Joshua', 'Michelle',
-        'Kenneth', 'Carol', 'Kevin', 'Amanda', 'Brian', 'Dorothy', 'George', 'Melissa',
-        'Timothy', 'Deborah'
+    male_names = [
+        'Ahmad', 'Mohammed', 'Ali', 'Hassan', 'Omar', 'Youssef', 'Khalid', 'Ibrahim',
+        'Faisal', 'Tariq', 'Rami', 'Samir', 'Nasser', 'Sami', 'Ziad', 'Majid',
+        'Karim', 'Fahad', 'Hussein', 'Adnan', 'Bilal', 'Mahmoud', 'Amir', 'Rashid',
     ]
-    
+
+    female_names = [
+        "Aaliyah", "Amira", "Aya", "Dalal", "Farah", "Hala", "Iman", "Jumana", 
+        "Khalida", "Lina", "Maha", "Mariam", "Nada", "Noura", "Rania", "Reem", 
+        "Salma", "Sara", "Yasmin", "Zahra", "Layla", "Dana", "Huda", "Sana", "Rima"
+    ]
+
     last_names = [
-        'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis',
-        'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson',
-        'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson',
-        'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson', 'Walker',
-        'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores',
-        'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell',
-        'Carter', 'Roberts'
+        'Al-Fulan', 'Al-Hakim', 'Al-Masri', 'Al-Sharif', 'Al-Amiri', 'Al-Saleh', 'Al-Khalil', 
+        'Al-Qadi', 'Al-Jabari', 'Al-Hassan', 'Al-Rashid', 'Al-Majid', 'Al-Najjar', 'Al-Tamimi', 
+        'Al-Sayegh', 'Al-Habib', 'Al-Farouq', 'Al-Amin', 'Al-Karim', 'Al-Din', 'Al-Badawi', 
+        'Al-Ghazi', 'Al-Khatib', 'Al-Mahdi', 'Al-Rawi', 'Al-Fahad', 'Al-Nasser', 'Al-Taher', 
+        'Al-Zahrani', 'Al-Jazari', 'Al-Hamdan', 'Al-Sabah', 'Al-Mutairi', 'Al-Baghdadi', 
+        'Al-Quraishi', 'Al-Saud', 'Al-Fayez', 'Al-Ajmi', 'Al-Taleb', 'Al-Dabbagh', 'Al-Saadi', 
+        'Al-Harthy', 'Al-Rashwan', 'Al-Mansour', 'Al-Shehri', 'Al-Hussein', 'Al-Kuwaiti', 
+        'Al-Masoud', 'Al-Kindi', 'Al-Sarraf'
     ]
+
     
     chronic_diseases_list = [
         'None',
@@ -58,9 +63,9 @@ def generate_initial_data(apps, schema_editor):
     # Create 25 Patients
     patients = []
     for i in range(25):
-        first = random.choice(first_names)
-        last = random.choice(last_names)
         gender = random.choice(genders)
+        first = random.choice(male_names) if gender == 'male' else random.choice(female_names)
+        last = random.choice(last_names)
         
         # Generate birth date (age between 18 and 80)
         age = random.randint(18, 80)
@@ -70,7 +75,7 @@ def generate_initial_data(apps, schema_editor):
             email=f'{first.lower()}.{last.lower()}{i}@email.com',
             user_type='patient',
             full_name=f'{first} {last}',
-            phone_number=f'+1{random.randint(2000000000, 9999999999)}',
+            phone_number=f'+964{random.randint(2000000000, 9999999999)}',
             birth_date=birth_date,
             gender=gender,
             chronic_diseases=random.choice(chronic_diseases_list),
@@ -80,13 +85,20 @@ def generate_initial_data(apps, schema_editor):
     
     # Doctor specialties
     specialties = [
-        'Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics', 'Dermatology',
-        'Psychiatry', 'Oncology', 'Gastroenterology', 'Endocrinology', 'Pulmonology',
-        'Nephrology', 'Rheumatology', 'Ophthalmology', 'ENT (Otolaryngology)', 
-        'Urology', 'Gynecology', 'Obstetrics', 'Allergy and Immunology',
-        'Anesthesiology', 'Radiology', 'Emergency Medicine', 'Family Medicine',
-        'Internal Medicine', 'Sports Medicine', 'Physical Medicine'
+        'Cardiology', 
+        'Neurology', 
+        'Orthopedics', 
+        'Pediatrics', 
+        'Dermatology',
+        'Psychiatry', 
+        'Oncology', 
+        'Gastroenterology', 
+        'Urology',
+        'Gynecology', 
+        'Internal Medicine', 
+        'Family Medicine'
     ]
+
     
     doctor_titles = ['Dr.']
     
@@ -98,40 +110,44 @@ def generate_initial_data(apps, schema_editor):
         'Expert in {} with extensive training in modern treatment methodologies.',
     ]
     
-    days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    days_of_week = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday',]
     
-    # Create 25 Doctors
+    image_files = os.listdir('media/doctors')
+    random.shuffle(image_files)
+
     doctors = []
-    for i in range(25):
-        first = random.choice(first_names)
+    for i, image_file in enumerate(image_files, start=1):
+        name_part = image_file.split('.')[0]
+        gender = 'female' if name_part.startswith('f') else 'male'
+    
+        # Pick first name based on gender
+        first = random.choice(male_names) if gender == 'male' else random.choice(female_names)
         last = random.choice(last_names)
-        specialty = specialties[i] if i < len(specialties) else random.choice(specialties)
-        
-        years_exp = random.randint(5, 30)
+    
+        specialty = specialties[i % len(specialties)]  # cycle through specialties
+        years_exp = random.randint(2, 8)
         about = random.choice(about_templates).format(years_exp, specialty.lower())
-        
+    
         doctor = User.objects.create(
             email=f'dr.{first.lower()}.{last.lower()}{i}@medicare.com',
             user_type='doctor',
             full_name=f'Dr. {first} {last}',
-            phone_number=f'+1{random.randint(2000000000, 9999999999)}',
+            phone_number=f'+964{random.randint(2000000000, 9999999999)}',
             specialty=specialty,
             about=about,
+            image=f'doctors/{image_file}',  # set the image field
             is_active=True
         )
         doctors.append(doctor)
-        
-        # Create 2-4 availability slots for each doctor
-        num_days = random.randint(2, 4)
+    
+        # Create 2-4 availability slots
+        num_days = random.randint(2, 6)
         selected_days = random.sample(days_of_week, num_days)
-        
         for day in selected_days:
-            # Random start time between 8 AM and 10 AM
             start_hour = random.randint(8, 10)
-            # Work day of 6-8 hours
             work_hours = random.randint(6, 8)
             end_hour = start_hour + work_hours
-            
+        
             DoctorAvailability.objects.create(
                 doctor=doctor,
                 day=day,
