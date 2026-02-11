@@ -22,14 +22,14 @@ const API_ENDPOINTS = {
     appointmentConclude: (id) => `/appointments/${id}/conclude/`,
     
     // Admin
-    adminDoctors: '/admin/doctors/',
-    adminDoctorCreate: '/admin/doctors/create/',
-    adminDoctorDelete: (id) => `/admin/doctors/${id}/`,
-    adminPatients: '/admin/patients/',
-    adminPatientDelete: (id) => `/admin/patients/${id}/`,
-    adminAppointments: '/admin/appointments/',
-    adminAppointmentDelete: (id) => `/admin/appointments/${id}/`,
-    adminSwap: '/admin/swap-admin/'
+    adminDoctors: '/mod/doctors/',
+    adminDoctorCreate: '/mod/doctors/create/',
+    adminDoctorDelete: (id) => `/mod/doctors/${id}/`,
+    adminPatients: '/mod/patients/',
+    adminPatientDelete: (id) => `/mod/patients/${id}/`,
+    adminAppointments: '/mod/appointments/',
+    adminAppointmentDelete: (id) => `/mod/appointments/${id}/`,
+    adminSwap: '/mod/swap-mod/'
 };
 
 // Helper function to make API calls
