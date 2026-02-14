@@ -113,12 +113,12 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
                 f"Doctor's working hours on {day_name.capitalize()} are {day_availability.start_time.strftime('%H:%M')} - {day_availability.end_time.strftime('%H:%M')}."
             )
         
-        # Check if there's a conflicting appointment (within 30 minutes)
+        # Check if there's a conflicting appointment (within 29 minutes)
         conflicting_appointments = Appointment.objects.filter(
             doctor=doctor,
             status__in=['waiting', 'completed'],
-            datetime__gte=appointment_datetime - timedelta(minutes=30),
-            datetime__lte=appointment_datetime + timedelta(minutes=30)
+            datetime__gte=appointment_datetime - timedelta(minutes=29),
+            datetime__lte=appointment_datetime + timedelta(minutes=29)
         ).exclude(status='cancelled')
         
         if conflicting_appointments.exists():
