@@ -81,7 +81,7 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = ['doctor', 'datetime']
     
-    def validate(self, data):
+    def validate(self, data): # type: ignore
         doctor = data.get('doctor')
         appointment_datetime = data.get('datetime')
         
@@ -89,13 +89,17 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
         if doctor.user_type != 'doctor':
             raise serializers.ValidationError("Selected user is not a doctor.")
         
+        # Convert to naive datetime for comparison
+        appointment_naive = appointment_datetime.replace(tzinfo=None) if appointment_datetime.tzinfo else appointment_datetime
+        
         # Check if appointment time is in the future
-        if appointment_datetime <= timezone.now():
+        now_naive = timezone.datetime.now()
+        if appointment_naive <= now_naive:
             raise serializers.ValidationError("Appointment time must be in the future.")
         
         # Check if doctor works on this day
-        day_name = appointment_datetime.strftime('%A').lower()
-        appointment_time = appointment_datetime.time()
+        day_name = appointment_naive.strftime('%A').lower()
+        appointment_time = appointment_naive.time()
         
         day_availability = DoctorAvailability.objects.filter(
             doctor=doctor,
@@ -108,9 +112,10 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
             )
         
         # Check if appointment is within doctor's working hours
-        if not (day_availability.start_time <= appointment_time <= day_availability.end_time):
+        # Appointment should start within working hours
+        if appointment_time < day_availability.start_time or appointment_time >= day_availability.end_time:
             raise serializers.ValidationError(
-                f"Doctor's working hours on {day_name.capitalize()} are {day_availability.start_time.strftime('%H:%M')} - {day_availability.end_time.strftime('%H:%M')}."
+                f"Doctor's working hours on {day_name.capitalize()} are {day_availability.start_time.strftime('%I:%M %p')} - {day_availability.end_time.strftime('%I:%M %p')}."
             )
         
         # Check if there's a conflicting appointment (within 29 minutes)
@@ -185,7 +190,7 @@ class DoctorAppointmentDetailSerializer(serializers.ModelSerializer):
         ).order_by('-datetime')
         
         return [{
-            'id': appt.id,
+            'id': appt.id, # type: ignore
             'datetime': appt.datetime,
             'conclusion': appt.conclusion,
             'medication': appt.medication
@@ -214,14 +219,19 @@ class AppointmentConcludeSerializer(serializers.ModelSerializer):
         return instance
 
 
-class DoctorCreateSerializer(DoctorDetailSerializer):
-    """Serializer for admin creating a doctor with availability input."""
-    availabilities = serializers.JSONField(write_only=True)
-
-    class Meta(DoctorDetailSerializer.Meta):
-        fields = DoctorDetailSerializer.Meta.fields + ['availabilities']
-
+class DoctorCreateSerializer(serializers.ModelSerializer):
+    """Serializer for admin creating a doctor with availability."""
+    availabilities = serializers.JSONField()
+    
+    class Meta:
+        model = User
+        fields = [
+            'email', 'full_name', 'phone_number',
+            'specialty', 'about', 'image', 'availabilities'
+        ]
+    
     def validate_availabilities(self, value):
+        """Parse availabilities if it comes as a string (from FormData)"""
         if isinstance(value, str):
             import json
             try:
@@ -229,16 +239,16 @@ class DoctorCreateSerializer(DoctorDetailSerializer):
             except json.JSONDecodeError:
                 raise serializers.ValidationError("Invalid availabilities format")
         return value
-
+    
     def create(self, validated_data):
         availabilities_data = validated_data.pop('availabilities', [])
         validated_data['user_type'] = 'doctor'
         doctor = User.objects.create(**validated_data)
-
+        
         # Create availabilities
         for avail in availabilities_data:
             DoctorAvailability.objects.create(doctor=doctor, **avail)
-
+        
         return doctor
 
 

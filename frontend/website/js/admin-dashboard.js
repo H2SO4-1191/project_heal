@@ -126,13 +126,13 @@ function showDoctorModal() {
     availabilityInputs.innerHTML = `
         <div class="availability-row">
             <select class="form-input-small availability-day">
+                <option value="saturday">Saturday</option>
+                <option value="sunday">Sunday</option>
                 <option value="monday">Monday</option>
                 <option value="tuesday">Tuesday</option>
                 <option value="wednesday">Wednesday</option>
                 <option value="thursday">Thursday</option>
                 <option value="friday">Friday</option>
-                <option value="saturday">Saturday</option>
-                <option value="sunday">Sunday</option>
             </select>
             <input type="time" class="form-input-small availability-start" value="09:00">
             <input type="time" class="form-input-small availability-end" value="17:00">
@@ -156,13 +156,13 @@ function addAvailabilityRow() {
     newRow.className = 'availability-row';
     newRow.innerHTML = `
         <select class="form-input-small availability-day">
+            <option value="saturday">Saturday</option>
+            <option value="sunday">Sunday</option>
             <option value="monday">Monday</option>
             <option value="tuesday">Tuesday</option>
             <option value="wednesday">Wednesday</option>
             <option value="thursday">Thursday</option>
             <option value="friday">Friday</option>
-            <option value="saturday">Saturday</option>
-            <option value="sunday">Sunday</option>
         </select>
         <input type="time" class="form-input-small availability-start" value="09:00">
         <input type="time" class="form-input-small availability-end" value="17:00">

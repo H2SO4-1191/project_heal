@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8000/';
 
 // API Endpoints
 const API_ENDPOINTS = {
@@ -93,8 +93,9 @@ function formatDateTime(dateTimeString) {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
     };
     return date.toLocaleDateString('en-US', options);
 }
@@ -116,8 +117,9 @@ function formatTime(timeString) {
     const date = new Date();
     date.setHours(hours, minutes);
     return date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
     });
 }
 

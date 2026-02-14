@@ -76,7 +76,13 @@ function displayDoctorProfile(doctor) {
     availabilityList.innerHTML = '';
     
     if (doctor.availabilities && doctor.availabilities.length > 0) {
-        doctor.availabilities.forEach(avail => {
+        // Sort by Middle Eastern week order (Saturday to Friday)
+        const dayOrder = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        const sortedAvailabilities = [...doctor.availabilities].sort((a, b) => {
+            return dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+        });
+        
+        sortedAvailabilities.forEach(avail => {
             const item = document.createElement('div');
             item.className = 'availability-item';
             item.innerHTML = `
@@ -118,8 +124,10 @@ async function handleBooking() {
         return;
     }
     
-    // Convert to ISO format
-    const dateTime = new Date(appointmentDate).toISOString();
+    // Convert datetime-local value to ISO format without timezone conversion
+    // The input gives us: "2026-02-18T09:00" (local time)
+    // We need to send it as: "2026-02-18T09:00:00" (naive datetime)
+    const dateTime = appointmentDate + ':00'; // Add seconds
     
     try {
         const result = await apiCall(API_ENDPOINTS.appointmentCreate, 'POST', {

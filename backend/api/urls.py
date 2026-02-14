@@ -1,34 +1,5 @@
 from django.urls import path
-from .views import (
-    # Authentication
-    PatientSignupView,
-    OTPRequestView,
-    OTPVerifyView,
-    
-    # Patients
-    DoctorListView,
-    DoctorDetailView,
-    DoctorNextAvailableView,
-    AppointmentCreateView,
-    PatientAppointmentListView,
-    AppointmentDetailView,
-    AppointmentCancelView,
-    
-    # Doctors
-    DoctorTodayAppointmentsView,
-    DoctorAppointmentDetailView,
-    AppointmentConcludeView,
-    
-    # Admin
-    AdminDoctorListView,
-    AdminDoctorCreateView,
-    AdminDoctorDeleteView,
-    AdminPatientListView,
-    AdminPatientDeleteView,
-    AdminAppointmentListView,
-    AdminAppointmentDeleteView,
-    AdminSwapView,
-)
+from .views import *
 
 urlpatterns = [
     # ==================== Authentication ====================
