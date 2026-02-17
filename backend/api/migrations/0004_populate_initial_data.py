@@ -1,9 +1,11 @@
-import os
+import os, random, string
 from django.db import migrations
 from django.utils import timezone
-import random
 from datetime import timedelta, date
 
+def random_email():
+    prefix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    return f'{prefix}@medicare.com'
 
 def generate_initial_data(apps, schema_editor):
     User = apps.get_model('api', 'User') 
@@ -21,42 +23,42 @@ def generate_initial_data(apps, schema_editor):
     
     # Patient data
     male_names = [
-        'Ahmad', 'Mohammed', 'Ali', 'Hassan', 'Omar', 'Youssef', 'Khalid', 'Ibrahim',
-        'Faisal', 'Tariq', 'Rami', 'Samir', 'Nasser', 'Sami', 'Ziad', 'Majid',
-        'Karim', 'Fahad', 'Hussein', 'Adnan', 'Bilal', 'Mahmoud', 'Amir', 'Rashid',
+        'أحمد', 'محمد', 'علي', 'حسن', 'عمر', 'يوسف', 'خالد', 'إبراهيم',
+        'فيصل', 'طارق', 'رامي', 'سمير', 'ناصر', 'سامي', 'زياد', 'ماجد',
+        'كريم', 'فهد', 'حسين', 'عدنان', 'بلال', 'محمود', 'أمير', 'راشد',
     ]
 
     female_names = [
-        "Aaliyah", "Amira", "Aya", "Dalal", "Farah", "Hala", "Iman", "Jumana", 
-        "Khalida", "Lina", "Maha", "Mariam", "Nada", "Noura", "Rania", "Reem", 
-        "Salma", "Sara", "Yasmin", "Zahra", "Layla", "Dana", "Huda", "Sana", "Rima"
+        "عالية", "أميرة", "آية", "دلال", "فرح", "هالة", "إيمان", "جمانة",
+        "خالدة", "لينا", "مها", "مريم", "ندى", "نورة", "رانية", "ريم",
+        "سلمى", "سارة", "ياسمين", "زهرة", "ليلى", "دانا", "هدى", "سناء", "ريما"
     ]
 
     last_names = [
-        'Al-Fulan', 'Al-Hakim', 'Al-Masri', 'Al-Sharif', 'Al-Amiri', 'Al-Saleh', 'Al-Khalil', 
-        'Al-Qadi', 'Al-Jabari', 'Al-Hassan', 'Al-Rashid', 'Al-Majid', 'Al-Najjar', 'Al-Tamimi', 
-        'Al-Sayegh', 'Al-Habib', 'Al-Farouq', 'Al-Amin', 'Al-Karim', 'Al-Din', 'Al-Badawi', 
-        'Al-Ghazi', 'Al-Khatib', 'Al-Mahdi', 'Al-Rawi', 'Al-Fahad', 'Al-Nasser', 'Al-Taher', 
-        'Al-Zahrani', 'Al-Jazari', 'Al-Hamdan', 'Al-Sabah', 'Al-Mutairi', 'Al-Baghdadi', 
-        'Al-Quraishi', 'Al-Saud', 'Al-Fayez', 'Al-Ajmi', 'Al-Taleb', 'Al-Dabbagh', 'Al-Saadi', 
-        'Al-Harthy', 'Al-Rashwan', 'Al-Mansour', 'Al-Shehri', 'Al-Hussein', 'Al-Kuwaiti', 
-        'Al-Masoud', 'Al-Kindi', 'Al-Sarraf'
+        'الفلان', 'الحكيم', 'المصري', 'الشريف', 'الأميري', 'الصالح', 'الخليل',
+        'القاضي', 'الجباري', 'الحسن', 'الرشيد', 'المجيد', 'النجار', 'التميمي',
+        'الصايغ', 'الحبيب', 'الفاروق', 'الأمين', 'الكريم', 'الدين', 'البداوي',
+        'الغازي', 'الخطيب', 'المهدي', 'الراوي', 'الفهد', 'النصر', 'الطاهر',
+        'الزهراني', 'الجزري', 'الهمدان', 'الصباح', 'المطيري', 'البغدادي',
+        'القريشي', 'السعود', 'الفياض', 'العجمي', 'الطالب', 'الدباغ', 'السعدي',
+        'الحارثي', 'الرشوان', 'المنصور', 'الشهري', 'الحسين', 'الكويتي',
+        'المسعود', 'الكندي', 'الصراف'
     ]
 
-    
     chronic_diseases_list = [
-        'None',
-        'Diabetes Type 2',
-        'Hypertension',
-        'Asthma',
-        'Diabetes Type 2, Hypertension',
-        'Arthritis',
-        'High Cholesterol',
-        'Thyroid Disorder',
-        'Chronic Back Pain',
-        'Migraine',
+        'لا شيء',
+        'داء السكري من النوع 2',
+        'ارتفاع ضغط الدم',
+        'الربو',
+        'داء السكري من النوع 2، ارتفاع ضغط الدم',
+        'التهاب المفاصل',
+        'ارتفاع الكوليسترول',
+        'اضطراب الغدة الدرقية',
+        'آلام الظهر المزمنة',
+        'الصداع النصفي',
         ''
     ]
+
     
     genders = ['male', 'female']
     
@@ -72,7 +74,7 @@ def generate_initial_data(apps, schema_editor):
         birth_date = date.today() - timedelta(days=age*365 + random.randint(0, 365))
         
         patient = User.objects.create(
-            email=f'{first.lower()}.{last.lower()}{i}@email.com',
+            email=random_email(),
             user_type='patient',
             full_name=f'{first} {last}',
             phone_number=f'+964{random.randint(2000000000, 9999999999)}',
@@ -85,30 +87,28 @@ def generate_initial_data(apps, schema_editor):
     
     # Doctor specialties
     specialties = [
-        'Cardiology', 
-        'Neurology', 
-        'Orthopedics', 
-        'Pediatrics', 
-        'Dermatology',
-        'Psychiatry', 
-        'Oncology', 
-        'Gastroenterology', 
-        'Urology',
-        'Gynecology', 
-        'Internal Medicine', 
-        'Family Medicine'
+        'طب القلب',
+        'طب الأعصاب',
+        'جراحة العظام',
+        'طب الأطفال',
+        'طب الجلدية',
+        'الطب النفسي',
+        'علم الأورام',
+        'أمراض الجهاز الهضمي',
+        'جراحة المسالك البولية',
+        'طب النساء',
+        'الطب الباطني',
+        'طب الأسرة'
     ]
-
-    
-    doctor_titles = ['Dr.']
     
     about_templates = [
-        'Board-certified specialist with over {} years of experience in {}.',
-        'Experienced {} specialist committed to providing comprehensive patient care.',
-        'Dedicated physician specializing in {} with a focus on evidence-based treatment.',
-        'Passionate about {} and helping patients achieve optimal health outcomes.',
-        'Expert in {} with extensive training in modern treatment methodologies.',
+        'أخصائي معتمد من المجلس الطبي بخبرة تزيد عن {} سنوات في {}.',
+        'أخصائي {} ذو خبرة ملتزم بتقديم رعاية شاملة للمرضى.',
+        'طبيب مخلص متخصص في {} مع التركيز على العلاج المبني على الأدلة.',
+        'شغوف بـ {} ومساعدة المرضى على تحقيق أفضل النتائج الصحية.',
+        'خبير في {} مع تدريب واسع في أساليب العلاج الحديثة.'
     ]
+
     
     days_of_week = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday',]
     
@@ -129,9 +129,9 @@ def generate_initial_data(apps, schema_editor):
         about = random.choice(about_templates).format(years_exp, specialty.lower())
     
         doctor = User.objects.create(
-            email=f'dr.{first.lower()}.{last.lower()}{i}@medicare.com',
+            email=random_email(),
             user_type='doctor',
-            full_name=f'Dr. {first} {last}',
+            full_name=f'د. {first} {last}',
             phone_number=f'+964{random.randint(2000000000, 9999999999)}',
             specialty=specialty,
             about=about,

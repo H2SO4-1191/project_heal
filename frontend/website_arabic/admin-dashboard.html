@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المسؤول - ميديكير</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1 class="logo">ميديكير - المسؤول</h1>
+            </div>
+            <div class="nav-links">
+                <a href="admin-dashboard.html" class="nav-link active">لوحة التحكم</a>
+                <div class="user-section" id="userSection">
+                    <span class="user-name" id="userName"></span>
+                    <button class="btn btn-outline" id="logoutBtn">تسجيل الخروج</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2 class="page-title">لوحة تحكم المسؤول</h2>
+
+            <!-- بطاقات الإحصائيات -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👨‍⚕️</div>
+                    <div class="stat-info">
+                        <h3 id="totalDoctors">0</h3>
+                        <p>إجمالي الأطباء</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <h3 id="totalPatients">0</h3>
+                        <p>إجمالي المرضى</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-info">
+                        <h3 id="totalAppointments">0</h3>
+                        <p>إجمالي المواعيد</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-info">
+                        <h3 id="todayAppointments">0</h3>
+                        <p>مواعيد اليوم</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تبويبات الإدارة -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="doctors">الأطباء</button>
+                <button class="admin-tab" data-tab="patients">المرضى</button>
+                <button class="admin-tab" data-tab="appointments">المواعيد</button>
+                <button class="admin-tab" data-tab="settings">الإعدادات</button>
+            </div>
+
+            <!-- تبويب الأطباء -->
+            <div class="tab-content" id="doctorsTab">
+                <div class="tab-header">
+                    <h3>إدارة الأطباء</h3>
+                    <button class="btn btn-primary" id="addDoctorBtn">+ إضافة طبيب</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>التخصص</th>
+                                <th>الهاتف</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="doctorsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- تبويب المرضى -->
+            <div class="tab-content hidden" id="patientsTab">
+                <div class="tab-header">
+                    <h3>إدارة المرضى</h3>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>الهاتف</th>
+                                <th>العمر</th>
+                                <th>الجنس</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- تبويب المواعيد -->
+            <div class="tab-content hidden" id="appointmentsTab">
+                <div class="tab-header">
+                    <h3>إدارة المواعيد</h3>
+                    <div class="filters-inline">
+                        <select id="statusFilter" class="form-input-small">
+                            <option value="">جميع الحالات</option>
+                            <option value="waiting">بانتظار</option>
+                            <option value="completed">مكتمل</option>
+                            <option value="cancelled">ملغي</option>
+                        </select>
+                        <select id="periodFilter" class="form-input-small">
+                            <option value="">جميع الأوقات</option>
+                            <option value="today">اليوم</option>
+                            <option value="future">القادمة</option>
+                            <option value="past">السابقة</option>
+                        </select>
+                        <button class="btn btn-secondary" id="filterAppointmentsBtn">تصفية</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الرقم</th>
+                                <th>الطبيب</th>
+                                <th>المريض</th>
+                                <th>التاريخ والوقت</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appointmentsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- تبويب الإعدادات -->
+            <div class="tab-content hidden" id="settingsTab">
+                <div class="tab-header">
+                    <h3>إعدادات المسؤول</h3>
+                </div>
+                <div class="settings-section">
+                    <h4>تغيير البريد الإلكتروني للمسؤول</h4>
+                    <form id="swapAdminForm">
+                        <div class="form-group">
+                            <label for="newAdminEmail">البريد الإلكتروني الجديد</label>
+                            <input type="email" id="newAdminEmail" class="form-input" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">طلب رمز التحقق</button>
+                    </form>
+
+                    <div class="otp-verification hidden" id="otpVerification">
+                        <div class="form-group">
+                            <label for="currentOtp">رمز تحقق المسؤول الحالي</label>
+                            <input type="text" id="currentOtp" class="form-input" maxlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOtp">رمز تحقق المسؤول الجديد</label>
+                            <input type="text" id="newOtp" class="form-input" maxlength="6">
+                        </div>
+                        <button class="btn btn-primary" id="verifySwapBtn">تحقق وتبديل</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- نافذة إضافة طبيب -->
+    <div class="modal hidden" id="doctorModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="doctorModalTitle">إضافة طبيب جديد</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="doctorForm">
+                    <div class="form-group">
+                        <label for="doctorEmail">البريد الإلكتروني</label>
+                        <input type="email" id="doctorEmail" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorName">الاسم الكامل</label>
+                        <input type="text" id="doctorName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorPhone">رقم الهاتف</label>
+                        <input type="tel" id="doctorPhone" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorSpecialty">التخصص</label>
+                        <input type="text" id="doctorSpecialty" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorAbout">نبذة عن الطبيب</label>
+                        <textarea id="doctorAbout" class="form-input" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorImage">صورة الملف الشخصي (اختياري)</label>
+                        <input type="file" id="doctorImage" class="form-input" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>أوقات العمل</label>
+                        <div id="availabilityInputs">
+                            <div class="availability-row">
+                                <select class="form-input-small availability-day">
+                                    <option value="saturday">السبت</option>
+                                    <option value="sunday">الأحد</option>
+                                    <option value="monday">الاثنين</option>
+                                    <option value="tuesday">الثلاثاء</option>
+                                    <option value="wednesday">الأربعاء</option>
+                                    <option value="thursday">الخميس</option>
+                                    <option value="friday">الجمعة</option>
+                                </select>
+                                <input type="time" class="form-input-small availability-start" value="09:00">
+                                <input type="time" class="form-input-small availability-end" value="17:00">
+                                <button type="button" class="btn-icon" onclick="this.parentElement.remove()">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-text" id="addAvailabilityBtn">+ إضافة وقت عمل</button>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" id="cancelDoctorBtn">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ الطبيب</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html>
