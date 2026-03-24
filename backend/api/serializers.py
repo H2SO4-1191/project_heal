@@ -221,7 +221,7 @@ class AppointmentConcludeSerializer(serializers.ModelSerializer):
 
 class DoctorCreateSerializer(serializers.ModelSerializer):
     """Serializer for admin creating a doctor with availability."""
-    availabilities = serializers.JSONField()
+    availabilities = serializers.JSONField(write_only=True)
     
     class Meta:
         model = User
@@ -244,11 +244,10 @@ class DoctorCreateSerializer(serializers.ModelSerializer):
         availabilities_data = validated_data.pop('availabilities', [])
         validated_data['user_type'] = 'doctor'
         doctor = User.objects.create(**validated_data)
-        
-        # Create availabilities
+
         for avail in availabilities_data:
             DoctorAvailability.objects.create(doctor=doctor, **avail)
-        
+
         return doctor
 
 
